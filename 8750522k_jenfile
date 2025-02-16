@@ -1,7 +1,7 @@
 pipeline {
     agent any
     stages {
-        stage('8750522k-OP-S1') { 
+        stage('8750522k-OP-S1') { 
             steps {
                 sh '''#!/bin/bash
                 # Create a new backup image
@@ -33,7 +33,6 @@ pipeline {
                 '''
             }
         }
-}
 
         stage('8750522k-OP-S2') { 
             steps {
@@ -45,6 +44,7 @@ pipeline {
                         echo "8750522k_OP_S2: 8750522k_uat svr is running" 
                     else
                         echo "8750522k_OP_S2: 8750522k_uat svr fails"
+                    fi
                 '''
             }
         }
@@ -119,9 +119,6 @@ pipeline {
                     # Expose port 80 as host port 32600 (assuming you are using Docker)
                     docker exec -it <container_id> bash -c "iptables -t nat -A PREROUTING -p tcp --dport 32600 -j DNAT --to-destination :80"
 
-                    # Wait for a short period to allow the port mapping to take effect
-                    sleep 5 
-
                     # Perform the curl request
                     curl -ls http://localhost:32600 | head -n 1 > /tmp/prodsvr-result-file
 
@@ -144,6 +141,8 @@ pipeline {
                         when choice == 'Troubleshooting' {
                             echo "8750552k_OP_S7: Troubleshooting of Production website is in progress"
                         }
+                    fi
+
                     # Clean up the port mapping (optional)
                     docker exec -it <container_id> bash -c "iptables -t nat -D PREROUTING -p tcp --dport 32600 -j DNAT --to-destination :80" 
                 '''

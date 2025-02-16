@@ -33,6 +33,7 @@ pipeline {
                 '''
             }
         }
+}
 
         stage('8750522k-OP-S2') { 
             steps {
@@ -149,4 +150,3 @@ pipeline {
             }
         }
     }
-}

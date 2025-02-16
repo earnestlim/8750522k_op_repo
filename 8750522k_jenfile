@@ -1,7 +1,7 @@
 pipeline {
     agent any
     stages {
-        stage('8750522k-OP-S1') { 
+        stage('8750522k-OP-S1') { 
             steps {
                 sh '''#!/bin/bash
                 # Create a new backup image
@@ -38,7 +38,7 @@ pipeline {
             steps {
                 sh '''
                     curl -ls http://localhost:32600 | head -n 1 > /tmp/uatsvr-result-file
-                    curl_result=$(cat /tmp/uatsvr-result-file)
+                    curl_result=$(cat /tmp/uatsvr-result-file) 
 
                     if [[ "$curl_result" == *"HTTP/1.1 200 OK"* ]]; then
                         echo "8750522k_OP_S2: 8750522k_uat svr is running" 
@@ -145,6 +145,9 @@ pipeline {
                             echo "8750552k_OP_S7: Troubleshooting of Production website is in progress"
                         }
                     fi
+
+                    # Clean up the port mapping (optional)
+                    docker exec -it <container_id> bash -c "iptables -t nat -D PREROUTING -p tcp --dport 32600 -j DNAT --to-destination :80" 
                 '''
             }
         }

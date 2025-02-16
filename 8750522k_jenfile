@@ -23,8 +23,8 @@ pipeline {
                 cp /tmp/8750522k/research/Prod/8750522k_index.html /var/www/html/index.html
 
                 # Define targets and locate_script
-                targets=8750522k_uatsvr.localdomain
-                locate_script='/tmp/clone/devops_repo/script_to_run'
+                targets=8750522k_uatsvr.localdomain;
+                locate_script='/tmp/clone/devops_repo/script_to_run';
 
                 # Execute bolt script
                 bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root

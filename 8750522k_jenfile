@@ -88,6 +88,11 @@ pipeline {
                 docker rmi prod_svr_image
                 docker commit 8750522k_prodsvr prod_svr_image
                 
+                # Clean up and create research directory
+                puppet resource file /tmp/8750522k/research ensure=absent force=true
+                puppet resource file /tmp/8750522k ensure=directory
+                puppet resource file /tmp/8750522k/research ensure=directory
+                
                 targets="8750522k_prodsvr.localdomain"
                 locate_script="/tmp/8750522k/research/8750522k_op_repo/8750522k_script"
                 

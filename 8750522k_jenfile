@@ -70,21 +70,16 @@ pipeline {
         }
 
         stage('8750522k-OP-S5') { 
-            steps {
-                script {
-                    def deployChoice = input message: 'Deploy new update to prod web server?', parameters: [
-                        choice(name: 'DEPLOY', choices: ['Proceed', 'Abort'], description: 'Choose an option')
-                    ]
-                    if (deployChoice == 'Proceed') {
-                        sh '''#!/bin/bash
-                        docker rmi prod_svr_image
-                        docker commit 8750522k_prodsvr prod_svr_image
-                        bolt script run '/tmp/clone/devops_repo/script_to_run' -t 8750522k_prodsvr.localdomain -u clientadm -p user123 --no-host-key-check --run-as root
-                        '''
-                    }
-                }
-            }
-        }
+    steps {
+        echo "8750552k_OP_S5: Deploy new update to prod web server?"
+
+        choice options: ['Proceed to update prod web server', 'Abort (for stress test fails)'], 
+            description: 'Choose an option'
+
+        when choice == 'Proceed to update prod web server' {
+ }
+    }
+}
 
         stage('8750522k-OP-S6') {
             steps {

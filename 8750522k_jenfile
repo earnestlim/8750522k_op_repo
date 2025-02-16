@@ -87,7 +87,7 @@ pipeline {
                 sh '''#!/bin/bash
                 sh 'docker rmi prod_svr_image'
                 sh 'docker commit 8750522k_prod_svr_image prod_svr_image'
-                
+
                 targets= 8750522k_prodsvr.localdomain;
                 locate_script='/tmp/8750552k/research/8750522k_op_repo/8750522k_script';
                 

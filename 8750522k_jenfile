@@ -70,16 +70,16 @@ pipeline {
         }
 
         stage('8750522k-OP-S5') { 
-    steps {
-        echo "8750552k_OP_S5: Deploy new update to prod web server?"
+            steps {
+                echo "8750552k_OP_S5: Deploy new update to prod web server?"
 
-        choice options: ['Proceed to update prod web server', 'Abort (for stress test fails)'], 
-            description: 'Choose an option'
+                choice options: ['Proceed to update prod web server', 'Abort (for stress test fails)'], 
+                    description: 'Choose an option'
 
-        when choice == 'Proceed to update prod web server' {
- }
-    }
-}
+                when choice == 'Proceed to update prod web server' {
+                }
+            }
+        }
 
         stage('8750522k-OP-S6') {
             steps {

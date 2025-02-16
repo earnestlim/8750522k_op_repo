@@ -82,14 +82,14 @@ pipeline {
             }
         }
 
-        stage('8750522k-OP-S6') {
+                stage('8750522k-OP-S6') {
             steps {
                 sh '''#!/bin/bash
-                # docker rmi prod_svr_image
+                docker rmi prod_svr_image
                 docker commit 8750522k_prodsvr prod_svr_image
                 
                 targets="8750522k_prodsvr.localdomain"
-                locate_script="/tmp/8750552k/research/8750522k_op_repo/8750522k_script"
+                locate_script="/tmp/8750522k/research/8750522k_op_repo/8750522k_script"
                 
                 if [ -f "$locate_script" ]; then
                     bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root

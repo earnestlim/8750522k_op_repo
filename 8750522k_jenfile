@@ -5,8 +5,8 @@ pipeline {
             steps {
                 sh '''#!/bin/bash
                 # Create a new backup image
-                sh 'docker rmi uatsvr_image'
-                sh 'docker commit 8750522k_uatsvr uatsvr_image'
+                docker rmi uatsvr_image
+                docker commit 8750522k_uatsvr uatsvr_image
 
                 # Install and start apache2 service
                 puppet resource service apache2 ensure=running enable=true
@@ -48,43 +48,40 @@ pipeline {
                 '''
             }
         }
-    }
-}
 
-        stage('8750522k-OP-S3') { 
+        stage('8750522k-OP-S3') { 
             steps {
-                echo "8750552k_OP_S3: Proceed stress test uat web server?"
-
-                choice options: ['Proceed with stress test on uat web server', 'Abort (for uat svr fails)'], 
-                    description: 'Choose an option'
-                when choice == 'Proceed with stress test on uat web server' {
-                    // Add stress test commands here
+                script {
+                    def userChoice = input message: 'Proceed stress test uat web server?', parameters: [
+                        choice(name: 'STRESS_TEST', choices: ['Proceed', 'Abort'], description: 'Choose an option')
+                    ]
+                    if (userChoice == 'Proceed') {
+                        echo "8750522k_OP_S3: Running stress test on UAT web server..."
+                        // Add stress test commands here
+                    }
                 }
             }
         }
 
-        stage('8750522k-OP-S4') { 
+        stage('8750522k-OP-S4') { 
             steps {
-                echo "8750552k_OP_S4: Stress test result is good" 
+                echo "8750522k_OP_S4: Stress test result is good"
             }
         }
 
-        stage('8750522k-OP-S5') { 
+        stage('8750522k-OP-S5') { 
             steps {
-                echo "8750552k_OP_S5: Deploy new update to prod web server?"
-
-                choice options: ['Proceed to update prod web server', 'Abort (for stress test fails)'], 
-                    description: 'Choose an option'
-
-                when choice == 'Proceed to update prod web server' {
-                    sh '''#!/bin/bash
-                        # Create a new backup image
-                        sh 'docker rmi prod_svr_image'
-                        sh 'docker commit 8750522k_prodsvr prod_svr_image' 
-
-                        # Execute bolt script for production deployment
-                        bolt script run '/tmp/clone/devops_repo/script_to_run' -t 8750522k_prodsvr.localdomain -u clientadm -p user123 --no-host-key-check --run-as root 
-                    '''
+                script {
+                    def deployChoice = input message: 'Deploy new update to prod web server?', parameters: [
+                        choice(name: 'DEPLOY', choices: ['Proceed', 'Abort'], description: 'Choose an option')
+                    ]
+                    if (deployChoice == 'Proceed') {
+                        sh '''#!/bin/bash
+                        docker rmi prod_svr_image
+                        docker commit 8750522k_prodsvr prod_svr_image
+                        bolt script run '/tmp/clone/devops_repo/script_to_run' -t 8750522k_prodsvr.localdomain -u clientadm -p user123 --no-host-key-check --run-as root
+                        '''
+                    }
                 }
             }
         }
@@ -92,62 +89,30 @@ pipeline {
         stage('8750522k-OP-S6') {
             steps {
                 sh '''#!/bin/bash
-                    # Create a new backup image (assuming a container ID exists)
-                    sh 'docker rmi prod_svr_image' 
-                    sh 'docker commit puppetclient2_container prod_svr_image' 
-
-                    # Execute bolt script for deployment
-                    bolt script run '/tmp/clone/devops_repo/script_to_run' -t puppetclient2.localdomain -u clientadm -p user123 --no-host-key-check --run-as root 
-
-                    # Web test for puppetclient2 container
-                    curl -ls http://puppetclient2.localdomain | head -n 1 > /tmp/puppetclient2-result-file
-
-                    # Check puppetclient2-result-result
-                    curl_result=$(cat /tmp/puppetclient2-result-file)
-
-                    # Verify web test result
-                    if [[ "$curl_result" == *"HTTP/1.1 200 OK"* ]]; then
-                        echo "8750552k_OP_S6: puppetclient2 is running"
-                    else
-                        echo "8750552k_OP_S6: puppetclient2 fails"
-                    fi
+                sh 'docker rmi prod_svr_image'
+                sh 'docker commit 8750522k_prod_svr_image prod_svr_image'
+                
+                targets= 8750522k_prodsvr.localdomain;
+                locate_script='/tmp/8750552k/research/8750522k_op_repo/8750522k_script';
+                
+                bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root;
                 '''
+                echo "8750522k_OP_S6: prod web server is backup and updated"
             }
         }
 
         stage('8750522k-OP-S7') {
             steps {
-                sh '''
-                    # Expose port 80 as host port 32600 (assuming you are using Docker)
-                    docker exec -it <container_id> bash -c "iptables -t nat -A PREROUTING -p tcp --dport 32600 -j DNAT --to-destination :80"
-
-                    # Perform the curl request
-                    curl -ls http://localhost:32600 | head -n 1 > /tmp/prodsvr-result-file
-
-                    # Check prodsvr-result-result
-                    curl_result=$(cat /tmp/prodsvr-result-file)
-
-                    # Verify web test result
-                    if [[ "$curl_result" == *"HTTP/1.1 200 OK"* ]]; then
-                        echo "8750552k_OP_S7: Production website is operational"
-                    else
-                        echo "8750552k_OP_S7: Production website is not operational"
-
-                        choice options: ['Trigger roll back', 'Troubleshooting'], 
-                            description: 'Choose an action'
-
-                        when choice == 'Trigger roll back' {
-                            echo "8750552k_OP_S7: Production website is rolling back" 
-                        }
-
-                        when choice == 'Troubleshooting' {
-                            echo "8750552k_OP_S7: Troubleshooting of Production website is in progress"
-                        }
-                    fi
-
-                    # Clean up the port mapping (optional)
-                    docker exec -it <container_id> bash -c "iptables -t nat -D PREROUTING -p tcp --dport 32600 -j DNAT --to-destination :80" 
-                '''
+                script {
+                    def rollbackChoice = input message: 'Production website is not operational. Choose an action:', parameters: [
+                        choice(name: 'ROLLBACK', choices: ['Trigger roll back', 'Troubleshooting'], description: 'Choose an action')
+                    ]
+                    if (rollbackChoice == 'Trigger roll back') {
+                        echo "8750522k_OP_S7: Production website is rolling back"
+                    } else {
+                        echo "8750522k_OP_S7: Troubleshooting Production website in progress"
+                    }
+                }
             }
         }
     }

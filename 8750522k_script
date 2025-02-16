@@ -9,6 +9,6 @@ cd /tmp/clone
 git clone https://github.com/earnestlim/8750522k_op_repo.git
 cp -p /tmp/clone/devops_repo/index.html /var/www/html
 
-puppet resource file /tmp/8750552k/research ensure=absent force=true
-puppet resource file /tmp/8750552k ensure=directory
-puppet resource file /tmp/8750552k/research ensure=directory
+puppet resource file /tmp/8750522k ensure=absent force=true;
+puppet resource file /tmp/8750522k/research ensure=directory;
+puppet resource file /tmp/8750522k/research ensure=directory;

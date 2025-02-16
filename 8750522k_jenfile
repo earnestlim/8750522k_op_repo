@@ -12,8 +12,9 @@ pipeline {
                 puppet resource service apache2 ensure=running enable=true
 
                 # Clean up and create research directory
-                puppet resource file "/tmp/8750522k/research" ensure=absent force=true
-                puppet resource file "/tmp/8750522k/research" ensure=directory
+                puppet resource file /tmp/8750522k ensure=absent force=true;
+                puppet resource file /tmp/8750522k/research ensure=directory;
+                puppet resource file /tmp/8750522k/research ensure=directory;
 
                 # Clone the repository
                 cd /tmp/8750522k/research;

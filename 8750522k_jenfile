@@ -1,12 +1,12 @@
 pipeline {
     agent any
     stages {
-        stage('8750522k-OP-S1') { 
+        stage('8750522k-OP-S1') { 
             steps {
                 sh '''#!/bin/bash
                 # Create a new backup image
                 sh 'docker rmi uatsvr_image'
-                sh 'docker commit 8750522k_uatsvr uatsvr_image' 
+                sh 'docker commit 8750522k_uatsvr uatsvr_image'
 
                 # Install and start apache2 service
                 puppet resource service apache2 ensure=running enable=true
@@ -20,34 +20,36 @@ pipeline {
                 git clone https://github.com/earnestlim/8750522k_op_repo.git
 
                 # Copy index.html
-                cp /tmp/8750522k/research/Prod/8750522k_index.html /var/www/html/index.html 
+                cp /tmp/8750522k/research/Prod/8750522k_index.html /var/www/html/index.html
 
                 # Define targets and locate_script
-                targets=8750522k_uatsvr.localdomain 
+                targets=8750522k_uatsvr.localdomain
                 locate_script='/tmp/clone/devops_repo/script_to_run'
 
-                # Execute bolt script 
+                # Execute bolt script
                 bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root
 
-                echo "8750522k_OP_S1: uat web server is backup and updated" 
+                echo "8750522k_OP_S1: uat web server is backup and updated"
                 '''
             }
         }
 
-        stage('8750522k-OP-S2') { 
+        stage('8750522k-OP-S2') { 
             steps {
                 sh '''
                     curl -ls http://localhost:32600 | head -n 1 > /tmp/uatsvr-result-file
-                    curl_result=$(cat /tmp/uatsvr-result-file) 
+                    curl_result=$(cat /tmp/uatsvr-result-file)
 
                     if [[ "$curl_result" == *"HTTP/1.1 200 OK"* ]]; then
-                        echo "8750522k_OP_S2: 8750522k_uat svr is running" 
+                        echo "8750522k_OP_S2: 8750522k_uat svr is running"
                     else
                         echo "8750522k_OP_S2: 8750522k_uat svr fails"
                     fi
                 '''
             }
         }
+    }
+}
 
         stage('8750522k-OP-S3') { 
             steps {

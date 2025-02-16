@@ -86,7 +86,7 @@ pipeline {
                 stage('8750522k-OP-S6') {
             steps {
                 sh '''#!/bin/bash
-               # docker rmi prod_svr_image
+                docker rmi prod_svr_image
                 docker commit 8750522k_prodsvr prod_svr_image
             
                 targets="8750522k_prodsvr.localdomain"

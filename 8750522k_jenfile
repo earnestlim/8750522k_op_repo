@@ -71,12 +71,13 @@ pipeline {
 
         stage('8750522k-OP-S5') { 
             steps {
-                echo "8750552k_OP_S5: Deploy new update to prod web server?"
-
-                choice options: ['Proceed to update prod web server', 'Abort (for stress test fails)'], 
-                    description: 'Choose an option'
-
-                when choice == 'Proceed to update prod web server' {
+                script {
+                    def userChoice = input message: 'Deploy new update to prod web server?', parameters: [
+                        choice(name: 'DEPLOY_PROD', choices: ['Proceed to update prod web server', 'Abort (for stress test fails)'], description: 'Choose an option')
+                    ]
+                    if (userChoice == 'Proceed to update prod web server') {
+                        echo "8750522k_OP_S5: Proceeding with production update"
+                    }
                 }
             }
         }

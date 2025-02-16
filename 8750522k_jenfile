@@ -1,7 +1,7 @@
 pipeline {
     agent any
     stages {
-        stage('8750522k-OP-S1') { 
+        stage('8750522k-OP-S1') { 
             steps {
                 sh '''#!/bin/bash
                 # Create a new backup image
@@ -37,8 +37,8 @@ pipeline {
         stage('8750522k-OP-S2') { 
             steps {
                 sh '''
-                    curl -ls http://localhost:32600 | head -n 1 > /tmp/prodsvr-result-file
-                    curl_result=$(cat /tmp/uatsvr-result-file) 
+                    curl -ls http://localhost:32600 | head -n 1 > /tmp/uatsvr-result-file
+                    curl_result=$(cat /tmp/uatsvr-result-file)
 
                     if [[ "$curl_result" == *"HTTP/1.1 200 OK"* ]]; then
                         echo "8750522k_OP_S2: 8750522k_uat svr is running" 
@@ -56,14 +56,14 @@ pipeline {
                 choice options: ['Proceed with stress test on uat web server', 'Abort (for uat svr fails)'], 
                     description: 'Choose an option'
                 when choice == 'Proceed with stress test on uat web server' {
-                 
+                    // Add stress test commands here
                 }
             }
         }
 
-        stage('8750522k-OP-S4') { 
+        stage('8750522k-OP-S4') { 
             steps {
-                echo "8750552k_OP_S4: Stress test result is good" 
+                echo "8750552k_OP_S4: Stress test result is good" 
             }
         }
 
@@ -75,52 +75,78 @@ pipeline {
                     description: 'Choose an option'
 
                 when choice == 'Proceed to update prod web server' {
+                    sh '''#!/bin/bash
+                        # Create a new backup image
+                        sh 'docker rmi prod_svr_image'
+                        sh 'docker commit 8750522k_prodsvr prod_svr_image' 
+
+                        # Execute bolt script for production deployment
+                        bolt script run '/tmp/clone/devops_repo/script_to_run' -t 8750522k_prodsvr.localdomain -u clientadm -p user123 --no-host-key-check --run-as root 
+                    '''
                 }
             }
         }
 
-       stage('8750522k-OP-S6') {
-    steps {
-        sh '''#!/bin/bash
-        sh 'docker rmi prod_svr_image' 
-        sh 'docker commit 8750522k_prod_svr_image prod_svr_image' 
+        stage('8750522k-OP-S6') {
+            steps {
+                sh '''#!/bin/bash
+                    # Create a new backup image (assuming a container ID exists)
+                    sh 'docker rmi prod_svr_image' 
+                    sh 'docker commit puppetclient2_container prod_svr_image' 
 
-	targets= 8750522k_prodsvr.localdomain;
+                    # Execute bolt script for deployment
+                    bolt script run '/tmp/clone/devops_repo/script_to_run' -t puppetclient2.localdomain -u clientadm -p user123 --no-host-key-check --run-as root 
 
-	locate_script='/tmp/8750552k/research/8750522k_op_repo/8750522k_script;
+                    # Web test for puppetclient2 container
+                    curl -ls http://puppetclient2.localdomain | head -n 1 > /tmp/puppetclient2-result-file
 
-        
-        bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root;
+                    # Check puppetclient2-result-result
+                    curl_result=$(cat /tmp/puppetclient2-result-file)
 
-  	 '''
-            echo “8750522k_OP_S6: prod web server is backup and updated”
-            
-    }
+                    # Verify web test result
+                    if [[ "$curl_result" == *"HTTP/1.1 200 OK"* ]]; then
+                        echo "8750552k_OP_S6: puppetclient2 is running"
+                    else
+                        echo "8750552k_OP_S6: puppetclient2 fails"
+                    fi
+                '''
+            }
+        }
 
-       stage('8750522k-OP-S7') {
-    steps {
-        sh '''
-	    http://localhost:32500 | head -n 1 > /tmp/prodsvr-result-file
-            curl_result=$(cat /tmp/prodsvr-result-file)
+        stage('8750522k-OP-S7') {
+            steps {
+                sh '''
+                    # Expose port 80 as host port 32600 (assuming you are using Docker)
+                    docker exec -it <container_id> bash -c "iptables -t nat -A PREROUTING -p tcp --dport 32600 -j DNAT --to-destination :80"
 
-            if [[ "$curl_result" == *"HTTP/1.1 200 OK"* ]]; then
-                echo "8750552k_OP_S7: Production website is operational"
-            else
-                echo "8750552k_OP_S7: Production website is not operational"
+                    # Wait for a short period to allow the port mapping to take effect
+                    sleep 5 
 
-                choice options: ['Trigger roll back', 'Troubleshooting'], 
-                    description: 'Choose an action'
+                    # Perform the curl request
+                    curl -ls http://localhost:32600 | head -n 1 > /tmp/prodsvr-result-file
 
-                when choice == 'Trigger roll back' {
-                    echo "8750552k_OP_S7: Production website is rolling back" 
-                }
+                    # Check prodsvr-result-result
+                    curl_result=$(cat /tmp/prodsvr-result-file)
 
-                when choice == 'Troubleshooting' {
-                    echo "8750552k_OP_S7: Troubleshooting of Production website is in progress"
-                }
-            fi
-        '''
-    }
+                    # Verify web test result
+                    if [[ "$curl_result" == *"HTTP/1.1 200 OK"* ]]; then
+                        echo "8750552k_OP_S7: Production website is operational"
+                    else
+                        echo "8750552k_OP_S7: Production website is not operational"
+
+                        choice options: ['Trigger roll back', 'Troubleshooting'], 
+                            description: 'Choose an action'
+
+                        when choice == 'Trigger roll back' {
+                            echo "8750552k_OP_S7: Production website is rolling back" 
+                        }
+
+                        when choice == 'Troubleshooting' {
+                            echo "8750552k_OP_S7: Troubleshooting of Production website is in progress"
+                        }
+                    fi
+                '''
+            }
         }
     }
 }

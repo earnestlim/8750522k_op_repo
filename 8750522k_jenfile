@@ -203,20 +203,3 @@ pipeline {
     }
 }
 
-
-        stage('8750522k-OP-S7') {
-            steps {
-                script {
-                    def rollbackChoice = input message: 'Production website is not operational. Choose an action:', parameters: [
-                        choice(name: 'ROLLBACK', choices: ['Trigger roll back', 'Troubleshooting'], description: 'Choose an action')
-                    ]
-                    if (rollbackChoice == 'Trigger roll back') {
-                        echo "8750522k_OP_S7: Production website is rolling back"
-                    } else {
-                        echo "8750522k_OP_S7: Troubleshooting Production website in progress"
-                    }
-                }
-            }
-        }
-    }
-}

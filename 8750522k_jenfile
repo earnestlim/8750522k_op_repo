@@ -27,91 +27,7 @@ pipeline {
                 locate_script='/tmp/clone/devops_repo/script_to_run'
 
                 # Execute bolt script
-                bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root
-
-                echo "8750522k_OP_S1: uat web server is backup and updated"
-                '''
-            }
-        }
-
-        stage('8750522k-OP-S2') { 
-            steps {
-                sh '''
-                    curl -ls http://localhost:32600 | head -n 1 > /tmp/uatsvr-result-file
-                    curl_result=$(cat /tmp/uatsvr-result-file)
-
-                    if [[ "$curl_result" == *"HTTP/1.1 200 OK"* ]]; then
-                        echo "8750522k_OP_S2: 8750522k_uat svr is running"
-                    else
-                        echo "8750522k_OP_S2: 8750522k_uat svr fails"
-                    fi
-                '''
-            }
-        }
-
-        stage('8750522k-OP-S3') { 
-            steps {
-                script {
-                    def userChoice = input message: 'Proceed stress test uat web server?', parameters: [
-                        choice(name: 'STRESS_TEST', choices: ['Proceed', 'Abort'], description: 'Choose an option')
-                    ]
-                    if (userChoice == 'Proceed') {
-                        echo "8750522k_OP_S3: Running stress test on UAT web server..."
-                        // Add stress test commands here
-                    }
-                }
-            }
-        }
-
-        stage('8750522k-OP-S4') { 
-            steps {
-                echo "8750522k_OP_S4: Stress test result is good"
-            }
-        }
-
-        stage('8750522k-OP-S5') { 
-            steps {
-                script {
-                    def userChoice = input message: 'Deploy new update to prod web server?', parameters: [
-                        choice(name: 'DEPLOY_PROD', choices: ['Proceed to update prod web server', 'Abort (for stress test fails)'], description: 'Choose an option')
-                    ]
-                    if (userChoice == 'Proceed to update prod web server') {
-                        echo "8750522k_OP_S5: Proceeding with production update"
-                    }
-                }
-            }
-        }
-
-        pipeline {
-    agent any
-    stages {
-        stage('8750522k-OP-S1') { 
-            steps {
-                sh '''#!/bin/bash
-                # Create a new backup image
-                docker rmi uatsvr_image
-                docker commit 8750522k_uatsvr uatsvr_image
-
-                # Install and start apache2 service
-                puppet resource service apache2 ensure=running enable=true
-
-                # Clean up and create research directory
-                puppet resource file "/tmp/8750522k/research" ensure=absent force=true
-                puppet resource file "/tmp/8750522k/research" ensure=directory
-
-                # Clone the repository
-                cd /tmp/8750522k/research
-                git clone https://github.com/earnestlim/8750522k_op_repo.git
-
-                # Copy index.html
-                cp /tmp/8750522k/research/Prod/8750522k_index.html /var/www/html/index.html
-
-                # Define targets and locate_script
-                targets=8750522k_uatsvr.localdomain
-                locate_script='/tmp/clone/devops_repo/script_to_run'
-
-                # Execute bolt script
-                bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root
+                bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
 
                 echo "8750522k_OP_S1: uat web server is backup and updated"
                 '''
@@ -201,6 +117,4 @@ pipeline {
             }
         }
     }
-}
-}
 }

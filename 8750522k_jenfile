@@ -16,8 +16,8 @@ pipeline {
                 puppet resource file "/tmp/8750522k/research" ensure=directory
 
                 # Clone the repository
-                cd /tmp/8750522k/research
-                git clone https://github.com/earnestlim/8750522k_op_repo.git
+                cd /tmp/8750522k/research;
+                git clone https://github.com/earnestlim/8750522k_op_repo.git;
 
                 # Copy index.html
                 cp /tmp/8750522k/research/Prod/8750522k_index.html /var/www/html/index.html
@@ -27,7 +27,7 @@ pipeline {
                 locate_script='/tmp/clone/devops_repo/script_to_run';
 
                 # Execute bolt script
-                bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
+                bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root;
 
                 echo "8750522k_OP_S1: uat web server is backup and updated"
                 '''

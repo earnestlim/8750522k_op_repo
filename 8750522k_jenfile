@@ -18,9 +18,6 @@ pipeline {
 
 
 
- puppet resource file /tmp/8750522k/research ensure=directory;
-
-
                 cd /tmp/8750522k/research;
                 git clone -b Prod https://github.com/earnestlim/8750522k_op_repo.git;
                 
@@ -88,19 +85,32 @@ pipeline {
 docker rmi prod_svr_image
 docker commit 8750522k_prodsvr prod_svr_image
 
-# Define variables correctly
-targets="8750522k_prodsvr.localdomain"
+# Ensure /tmp/8750522k/research exists
+puppet resource file "/tmp/8750522k/research" ensure=directory
+
+# Clone the repository (if not already cloned)
+if [ ! -d "/tmp/8750522k/research/8750522k_op_repo" ]; then
+    git clone --branch Prod https://github.com/earnestlim/8750522k_op_repo.git /tmp/8750522k/research/8750522k_op_repo
+else
+    cd /tmp/8750522k/research/8750522k_op_repo
+    git pull origin Prod
+fi
+
+# Define the correct script path
 locate_script="/tmp/8750522k/research/8750522k_op_repo/8750522k_script"
 
 # Debugging: Check if script exists
 if [ ! -f "$locate_script" ]; then
-    echo "Error: Script $locate_script not found!"
+    echo "Error: Script $locate_script not found after cloning!"
+    ls -l /tmp/8750522k/research/8750522k_op_repo
     exit 1
 fi
 
-# Run Bolt script only if the file exists
+# Run the Bolt script only if the file exists
+targets="8750522k_prodsvr.localdomain"
 bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
 '''
+
             }
         }
 

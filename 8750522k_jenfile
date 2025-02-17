@@ -32,7 +32,7 @@ pipeline {
 
         stage('8750522k-OP-S2') { 
             steps {
-                sh '''
+                sh '''#!/bin/bash
                     curl -Is http://localhost:32500 | head -n 1 > /tmp/uatsvr-result-file
                     curl_result=$(cat /tmp/uatsvr-result-file)
 
@@ -42,6 +42,7 @@ pipeline {
                         echo "8750522k_OP_S2: 8750522k_uat svr fails"
                     fi
                 '''
+                
             }
         }
 

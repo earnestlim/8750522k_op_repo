@@ -4,8 +4,8 @@ puppet resource package git ensure=present
 puppet resource package apache2 ensure=present
 puppet resource service apache2 ensure=running
 
-puppet resource file /tmp/8750522k ensure=absent force=true
-puppet resource file /tmp/8750522k/research ensure=directory
+puppet resource file /tmp/8750522k/research ensure=absent force=true
+puppet resource file /tmp/8750522k ensure=directory
 puppet resource file /tmp/8750522k/research ensure=directory
 
 cd /tmp/8750522k/research

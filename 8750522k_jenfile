@@ -23,7 +23,7 @@ pipeline {
                 targets=8750522k_uatsvr.localdomain;
                 locate_script="/tmp/8750522k/research/8750522k_op_repo/8750522k_script";
 
-                bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root;
+                bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
 
                 echo "8750522k_OP_S1: uat web server is backup and updated"
                 '''

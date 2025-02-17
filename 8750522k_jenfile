@@ -84,17 +84,23 @@ pipeline {
 
                 stage('8750522k-OP-S6') {
             steps {
-                sh '''#!/bin/bash
-                docker rmi prod_svr_image
-                docker commit 8750522k_prodsvr prod_svr_image
-            
-                targets="8750522k_prodsvr.localdomain"
+               sh '''#!/bin/bash
+docker rmi prod_svr_image
+docker commit 8750522k_prodsvr prod_svr_image
 
-                locate_script="/tmp/8750522k/research/8750522k_op_repo/8750522k_script"
-                
-                    bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
-                '''
-                echo "8750522k_OP_S6: prod web server is backup and updated"
+# Define variables correctly
+targets="8750522k_prodsvr.localdomain"
+locate_script="/tmp/8750522k/research/8750522k_op_repo/8750522k_script"
+
+# Debugging: Check if script exists
+if [ ! -f "$locate_script" ]; then
+    echo "Error: Script $locate_script not found!"
+    exit 1
+fi
+
+# Run Bolt script only if the file exists
+bolt script run "$locate_script" -t "$targets" -u clientadm -p user123 --no-host-key-check --run-as root
+'''
             }
         }
 

@@ -11,7 +11,7 @@ puppet resource file /tmp/8750522k/research ensure=directory
 cd /tmp/8750522k/research
 
 git clone -b Prod https://github.com/earnestlim/8750522k_op_repo.git
-cp -p /tmp/8750522k/research/8750522k_op_repo/8750522k_index.html /var/www/html
+cp -p /tmp/8750522k/research/8750522k_op_repo/8750522k_index.html /var/www/html/index.html
 
 
 
